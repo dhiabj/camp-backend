@@ -8,17 +8,21 @@ router.route("/").get((req, res) => {
 });
 
 router.route("/add").post((req, res) => {
+  const title = req.body.title;
   const description = req.body.description;
-  const availableNetworks = req.body.availableNetworks;
+  const availableNetwork = req.body.availableNetwork;
+  const userId = req.body.userId;
 
   const newPost = new Post({
+    title,
     description,
-    availableNetworks,
+    availableNetwork,
+    userId,
   });
 
   newPost
     .save()
-    .then(() => res.json("Post added!"))
+    .then(() => res.json("ok"))
     .catch((err) => res.status(400).json("Error:" + err));
 });
 
@@ -37,8 +41,9 @@ router.route("/:id").delete((req, res) => {
 router.route("/update/:id").post((req, res) => {
   Post.findById(req.params.id)
     .then((post) => {
+      post.title = req.body.title;
       post.description = req.body.description;
-      post.availableNetworks = req.body.availableNetworks;
+      post.availableNetwork = req.body.availableNetwork;
 
       post
         .save()
