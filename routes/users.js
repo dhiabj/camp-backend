@@ -2,6 +2,8 @@ const router = require("express").Router();
 let User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const multer = require("multer");
+const fs = require("fs");
 
 router.route("/").get((req, res) => {
   User.find()
@@ -9,14 +11,28 @@ router.route("/").get((req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
-router.route("/register").post(async (req, res) => {
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+router.route("/register").post(upload.single("pfp"), async (req, res) => {
   console.log(req.body);
   try {
     const newPassword = await bcrypt.hash(req.body.password, 10);
+    var newImg = fs.readFileSync("uploads/" + req.file.filename);
+    var encImg = newImg.toString("base64");
     await User.create({
       username: req.body.username,
       email: req.body.email,
       password: newPassword,
+      img: encImg,
     });
     res.json({ status: "ok" });
   } catch (err) {

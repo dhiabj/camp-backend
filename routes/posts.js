@@ -1,29 +1,65 @@
 const router = require("express").Router();
 let Post = require("../models/post.model");
+const multer = require("multer");
+const fs = require("fs");
 
 router.route("/").get((req, res) => {
   Post.find()
+    .populate("userId")
     .then((posts) => res.json(posts))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
-router.route("/add").post((req, res) => {
-  const title = req.body.title;
-  const description = req.body.description;
-  const availableNetwork = req.body.availableNetwork;
-  const userId = req.body.userId;
+router.route("/:userId").get((req, res) => {
+  Post.find(req.params.userId)
+    .then((posts) => res.json(posts))
+    .catch((err) => res.status(400).json("Error: " + err));
+});
 
-  const newPost = new Post({
-    title,
-    description,
-    availableNetwork,
-    userId,
-  });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
 
-  newPost
-    .save()
-    .then(() => res.json("ok"))
-    .catch((err) => res.status(400).json("Error:" + err));
+const upload = multer({ storage: storage });
+
+router.route("/add").post(upload.array("gallery"), async (req, res) => {
+  try {
+    const title = req.body.title;
+    const description = req.body.description;
+    const availableNetwork = req.body.availableNetwork;
+    const userId = req.body.userId;
+    //console.log(req.files);
+
+    const formattedImgs = req.files.map((file) => {
+      var newImg = fs.readFileSync("uploads/" + file.filename);
+      var encImg = newImg.toString("base64");
+      return encImg;
+    });
+    const newPost = await Post.create({
+      title,
+      description,
+      availableNetwork,
+      img: formattedImgs,
+      userId,
+    });
+
+    //console.log(newPost);
+
+    const populated = await newPost.populate("userId");
+
+    // const populated = await Post.populate(newPost, { path: "userId" });
+
+    //console.log(populated);
+
+    res.status(200).json(populated);
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
 });
 
 router.route("/:id").get((req, res) => {

@@ -16,6 +16,11 @@ const postSchema = new Schema(
       type: String,
       required: true,
     },
+    img: [
+      {
+        type: String,
+      },
+    ],
     userId: {
       //type: mongoose.Schema.Types.ObjectId,
       type: String,
