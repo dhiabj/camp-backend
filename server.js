@@ -23,6 +23,9 @@ const postsRouter = require("./routes/posts");
 app.use("/api/users", usersRouter);
 app.use("/api/posts", postsRouter);
 
+app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
+
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
 });

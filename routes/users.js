@@ -11,6 +11,11 @@ router.route("/").get((req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
+router.route("/user/:id").get(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  res.send(user);
+});
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads");
@@ -26,13 +31,15 @@ router.route("/register").post(upload.single("pfp"), async (req, res) => {
   console.log(req.body);
   try {
     const newPassword = await bcrypt.hash(req.body.password, 10);
-    var newImg = fs.readFileSync("uploads/" + req.file.filename);
-    var encImg = newImg.toString("base64");
     await User.create({
       username: req.body.username,
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
       email: req.body.email,
       password: newPassword,
-      img: encImg,
+      birthday: req.body.birthday,
+      address: req.body.address,
+      img: req.file.filename,
     });
     res.json({ status: "ok" });
   } catch (err) {

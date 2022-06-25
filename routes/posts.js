@@ -11,7 +11,9 @@ router.route("/").get((req, res) => {
 });
 
 router.route("/:userId").get((req, res) => {
-  Post.find(req.params.userId)
+  //console.log(req.params);
+  Post.find({ userId: req.params.userId })
+    .populate("userId")
     .then((posts) => res.json(posts))
     .catch((err) => res.status(400).json("Error: " + err));
 });
@@ -36,9 +38,7 @@ router.route("/add").post(upload.array("gallery"), async (req, res) => {
     //console.log(req.files);
 
     const formattedImgs = req.files.map((file) => {
-      var newImg = fs.readFileSync("uploads/" + file.filename);
-      var encImg = newImg.toString("base64");
-      return encImg;
+      return file.filename;
     });
     const newPost = await Post.create({
       title,
@@ -68,7 +68,7 @@ router.route("/:id").get((req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
-router.route("/:id").delete((req, res) => {
+router.route("/delete/:id").delete((req, res) => {
   Post.findByIdAndDelete(req.params.id)
     .then(() => res.json("Post deleted."))
     .catch((err) => res.status(400).json("Error: " + err));
